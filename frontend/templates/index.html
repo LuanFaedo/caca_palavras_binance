@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Filtro de Palavras</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="manifest" href="/static/manifest.json">
+</head>
+<body>
+    <div class="container">
+        <h1>Filtro de Palavras</h1>
+        
+        <form id="filtro-form">
+            <!-- Input de Quantidade com Botões de Incremento/Decremento -->
+            <div class="form-group">
+                <label for="tamanho_palavra">Tamanho da Palavra:</label>
+                <div class="input-spinner">
+                    <button type="button" id="decrementar">-</button>
+                    <input type="number" id="tamanho_palavra" name="tamanho_palavra" min="1" value="5" required>
+                    <button type="button" id="incrementar">+</button>
+                </div>
+            </div>
+            
+            <!-- Letras Conhecidas -->
+            <div id="letras-posicionadas-container">
+                <h3>Letras Conhecidas:</h3>
+                <div class="letras-posicionadas-list"></div>
+            </div>
+            
+            <!-- Letras Extras -->
+            <div class="form-group">
+                <label for="letras_extras">Letras Extras:</label>
+                <div id="teclado-virtual-extras"></div>
+            </div>
+            
+            <!-- Letras de Exclusão -->
+            <div class="form-group">
+                <label for="letras_exclusao">Letras de Exclusão:</label>
+                <div id="teclado-virtual-exclusao"></div>
+            </div>
+            
+            <!-- Inserir Letras Encontradas -->
+            <div class="form-group">
+                <label>Inserir Letras Encontradas:</label>
+                <button type="button" id="adicionar-letras-encontradas">Adicionar Linha</button>
+                <div id="letras-encontradas-container"></div>
+            </div>
+        </form>
+        
+        <!-- Resultados -->
+        <div id="resultado">
+            <h2>Resultados</h2>
+            <p id="total"></p>
+            <ul id="palavras-list"></ul>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
