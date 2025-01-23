@@ -6,15 +6,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const letrasPosicionadasList = document.querySelector(".letras-posicionadas-list");
     const tecladoVirtualExtras = document.getElementById("teclado-virtual-extras");
     const tecladoVirtualExclusao = document.getElementById("teclado-virtual-exclusao");
-    const letrasEncontradasContainer = document.getElementById("letras-encontradas-container");
-    const adicionarLetrasEncontradasButton = document.getElementById("adicionar-letras-encontradas");
     const palavrasList = document.getElementById("palavras-list");
     const totalP = document.getElementById("total");
     
     // Conjuntos e arrays para armazenar dados
     let letrasExtrasSelecionadas = new Set();
     let letrasExclusaoSelecionadas = new Set();
-    let letrasEncontradasSelecionadas = []; // array de Sets, cada Set é uma linha
 
     // debounce
     function debounce(func, delay) {
@@ -93,62 +90,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     /**
-     * Adiciona uma nova linha de "Letras Encontradas"
-     */
-    function adicionarLinhaLetrasEncontradas() {
-        const tamanhoPalavra = parseInt(tamanhoPalavraInput.value);
-        if (isNaN(tamanhoPalavra) || tamanhoPalavra <= 0) {
-            alert("Defina um tamanho válido antes de adicionar linhas.");
-            return;
-        }
-
-        const letrasEncontradasSet = new Set();
-        letrasEncontradasSelecionadas.push(letrasEncontradasSet);
-        
-        const linhaDiv = document.createElement("div");
-        linhaDiv.classList.add("letras-encontradas-item");
-        
-        for (let i = 0; i < tamanhoPalavra; i++) {
-            const letraInput = document.createElement("input");
-            letraInput.type = "text";
-            letraInput.placeholder = "";
-            letraInput.maxLength = 1;
-            letraInput.pattern = "[A-Za-z]";
-            letraInput.title = "Apenas uma letra de A a Z";
-            
-            letraInput.addEventListener("input", function() {
-                debounce(filtrarPalavras, 300)();
-
-                // auto-foco
-                if (this.value.length === 1) {
-                    const inputsDestaLinha = Array.from(linhaDiv.querySelectorAll("input[type='text']"));
-                    const currentIndex = inputsDestaLinha.indexOf(this);
-                    if (currentIndex < inputsDestaLinha.length - 1) {
-                        inputsDestaLinha[currentIndex + 1].focus();
-                    }
-                }
-
-                const letra = this.value.trim().toLowerCase();
-                if (letra && /^[a-z]$/.test(letra)) {
-                    letrasEncontradasSet.add(letra);
-
-                    // opcional: marcar no teclado extras
-                    const tecla = Array.from(tecladoVirtualExtras.querySelectorAll(".tecla"))
-                                      .find(t => t.textContent.toLowerCase() === letra);
-                    if (tecla) {
-                        tecla.classList.add("selected");
-                    }
-                    letrasExtrasSelecionadas.add(letra);
-                }
-            });
-            
-            linhaDiv.appendChild(letraInput);
-        }
-        
-        letrasEncontradasContainer.appendChild(linhaDiv);
-    }
-
-    /**
      * Coleta dados e faz a filtragem via POST em /filtrar
      */
     function filtrarPalavras() {
@@ -170,17 +111,15 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
         
-        // Extras, Exclusão, Encontradas
+        // Extras e Exclusão
         const letrasExtras = Array.from(letrasExtrasSelecionadas);
         const letrasExclusao = Array.from(letrasExclusaoSelecionadas);
-        const letrasEncontradas = letrasEncontradasSelecionadas.map(set => Array.from(set));
 
         const payload = {
             "tamanho_palavra": tamanhoPalavra,
             "letras_posicionadas": letrasPosicionadas,
             "letras_extras": letrasExtras,
-            "letras_exclusao": letrasExclusao,
-            "letras_encontradas": letrasEncontradas
+            "letras_exclusao": letrasExclusao
         };
 
         fetch("/filtrar", {
@@ -216,11 +155,6 @@ document.addEventListener("DOMContentLoaded", function() {
             totalP.textContent = "";
         });
     }
-
-    // Botão para adicionar linha de letras encontradas
-    adicionarLetrasEncontradasButton.addEventListener("click", () => {
-        adicionarLinhaLetrasEncontradas();
-    });
 
     // Botões de incrementar/decrementar
     incrementarButton.addEventListener("click", function() {
