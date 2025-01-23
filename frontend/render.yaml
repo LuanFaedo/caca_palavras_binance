@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: caca_palavras_binance
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: npm start
+    nodeVersion: 18.x
