@@ -13,7 +13,7 @@ def carregar_palavras_arquivo(caminho_arquivo: str):
         palavras = [linha.strip().lower() for linha in f if linha.strip()]
     return palavras
 
-def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exclusao, tamanho_palavra):
+def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exclusao, letras_encontradas, tamanho_palavra):
     resultado = []
     
     for palavra in palavras_db:
@@ -56,6 +56,19 @@ def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exc
         if contem_exclusao:
             continue
         
+        # 5) Verificar letras encontradas (cada linha deve ter todas as letras presentes)
+        encaixa_encontradas = True
+        for linha in letras_encontradas:
+            for letra_encontrada in linha:
+                if letra_encontrada.lower() not in palavra:
+                    encaixa_encontradas = False
+                    break
+            if not encaixa_encontradas:
+                break
+        
+        if not encaixa_encontradas:
+            continue
+        
         resultado.append(palavra)
     
     return resultado
@@ -82,6 +95,7 @@ def filtrar():
     letras_posicionadas = data.get("letras_posicionadas", [])
     letras_extras = data.get("letras_extras", [])
     letras_exclusao = data.get("letras_exclusao", [])
+    letras_encontradas = data.get("letras_encontradas", [])
     
     # Validações básicas
     if not isinstance(tamanho_palavra, int) or tamanho_palavra <= 0:
@@ -89,8 +103,9 @@ def filtrar():
     
     if (not isinstance(letras_posicionadas, list) or 
         not isinstance(letras_extras, list) or 
-        not isinstance(letras_exclusao, list)):
-        return jsonify({"erro": "letras_posicionadas, letras_extras e letras_exclusao devem ser listas."}), 400
+        not isinstance(letras_exclusao, list) or 
+        not isinstance(letras_encontradas, list)):
+        return jsonify({"erro": "letras_posicionadas, letras_extras, letras_exclusao e letras_encontradas devem ser listas."}), 400
     
     # Filtrar palavras
     candidatas = filtrar_palavras(
@@ -98,6 +113,7 @@ def filtrar():
         letras_posicionadas=letras_posicionadas,
         letras_extras=letras_extras,
         letras_exclusao=letras_exclusao,
+        letras_encontradas=letras_encontradas,
         tamanho_palavra=tamanho_palavra
     )
     
@@ -111,4 +127,4 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+   app.run(debug=True)
