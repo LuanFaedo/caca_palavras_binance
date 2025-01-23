@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
+
 CORS(app)  # Permitir CORS para todas as rotas
 
 def carregar_palavras_arquivo(caminho_arquivo: str):
