@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const adicionarLetrasEncontradasButton = document.getElementById("adicionar-letras-encontradas");
     const palavrasList = document.getElementById("palavras-list");
     const totalP = document.getElementById("total");
+    const letrasIncorretasContainer = document.getElementById("letras-incorretas-container");
     
     // Conjuntos e arrays para armazenar dados
     let letrasExtrasSelecionadas = new Set();
@@ -149,6 +150,24 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     /**
+     * Atualiza os campos de letras em posições incorretas
+     */
+    function atualizarLetrasIncorretas(tamanho) {
+        letrasIncorretasContainer.innerHTML = '';
+        for (let i = 0; i < tamanho; i++) {
+            const div = document.createElement('div');
+            div.className = 'letras-incorretas-item';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 1;
+            input.placeholder = (i + 1).toString();
+            input.addEventListener("input", debounce(filtrarPalavras, 300));
+            div.appendChild(input);
+            letrasIncorretasContainer.appendChild(div);
+        }
+    }
+
+    /**
      * Coleta dados e faz a filtragem via POST em /filtrar
      */
     function filtrarPalavras() {
@@ -175,12 +194,18 @@ document.addEventListener("DOMContentLoaded", function() {
         const letrasExclusao = Array.from(letrasExclusaoSelecionadas);
         const letrasEncontradas = letrasEncontradasSelecionadas.map(set => Array.from(set));
 
+        // Letras em posições incorretas
+        const letrasIncorretas = Array.from(document.querySelectorAll('#letras-incorretas-container input')).map((input, index) => {
+            return { letra: input.value, posicao: index };
+        }).filter(item => item.letra !== '');
+
         const payload = {
             "tamanho_palavra": tamanhoPalavra,
             "letras_posicionadas": letrasPosicionadas,
             "letras_extras": letrasExtras,
             "letras_exclusao": letrasExclusao,
-            "letras_encontradas": letrasEncontradas
+            "letras_encontradas": letrasEncontradas,
+            "letras_incorretas": letrasIncorretas
         };
 
         fetch("/filtrar", {
@@ -217,14 +242,13 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    
-
     // Botões de incrementar/decrementar
     incrementarButton.addEventListener("click", function() {
         let valorAtual = parseInt(tamanhoPalavraInput.value);
         if (isNaN(valorAtual)) valorAtual = 0;
         tamanhoPalavraInput.value = valorAtual + 1;
         gerarInputs(valorAtual + 1);
+        atualizarLetrasIncorretas(valorAtual + 1);
     });
 
     decrementarButton.addEventListener("click", function() {
@@ -232,6 +256,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (isNaN(valorAtual) || valorAtual <= 1) return;
         tamanhoPalavraInput.value = valorAtual - 1;
         gerarInputs(valorAtual - 1);
+        atualizarLetrasIncorretas(valorAtual - 1);
     });
 
     // Redesenhar inputs quando muda o tamanho
@@ -244,10 +269,12 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         gerarInputs(tamanho);
+        atualizarLetrasIncorretas(tamanho);
     }, 300));
 
     // Inicialização
     criarTecladoVirtual(tecladoVirtualExtras, letrasExtrasSelecionadas);
     criarTecladoVirtual(tecladoVirtualExclusao, letrasExclusaoSelecionadas);
     gerarInputs(parseInt(tamanhoPalavraInput.value) || 5);
+    atualizarLetrasIncorretas(parseInt(tamanhoPalavraInput.value) || 5);
 });

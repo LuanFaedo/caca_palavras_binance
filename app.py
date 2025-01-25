@@ -3,7 +3,6 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-
 CORS(app)  # Permitir CORS para todas as rotas
 
 def carregar_palavras_arquivo(caminho_arquivo: str):
@@ -13,7 +12,7 @@ def carregar_palavras_arquivo(caminho_arquivo: str):
         palavras = [linha.strip().lower() for linha in f if linha.strip()]
     return palavras
 
-def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exclusao, letras_encontradas, tamanho_palavra):
+def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exclusao, letras_encontradas, letras_incorretas, tamanho_palavra):
     resultado = []
     
     for palavra in palavras_db:
@@ -69,6 +68,21 @@ def filtrar_palavras(palavras_db, letras_posicionadas, letras_extras, letras_exc
         if not encaixa_encontradas:
             continue
         
+        # 6) Verificar letras em posições incorretas
+        encaixa_incorretas = True
+        for item in letras_incorretas:
+            letra = item.get("letra", "").lower()
+            posicao = item.get("posicao")
+            if posicao is None or posicao < 0 or posicao >= tamanho_palavra:
+                encaixa_incorretas = False
+                break
+            if palavra[posicao] == letra:
+                encaixa_incorretas = False
+                break
+        
+        if not encaixa_incorretas:
+            continue
+        
         resultado.append(palavra)
     
     return resultado
@@ -96,6 +110,7 @@ def filtrar():
     letras_extras = data.get("letras_extras", [])
     letras_exclusao = data.get("letras_exclusao", [])
     letras_encontradas = data.get("letras_encontradas", [])
+    letras_incorretas = data.get("letras_incorretas", [])
     
     # Validações básicas
     if not isinstance(tamanho_palavra, int) or tamanho_palavra <= 0:
@@ -104,8 +119,9 @@ def filtrar():
     if (not isinstance(letras_posicionadas, list) or 
         not isinstance(letras_extras, list) or 
         not isinstance(letras_exclusao, list) or 
-        not isinstance(letras_encontradas, list)):
-        return jsonify({"erro": "letras_posicionadas, letras_extras, letras_exclusao e letras_encontradas devem ser listas."}), 400
+        not isinstance(letras_encontradas, list) or
+        not isinstance(letras_incorretas, list)):
+        return jsonify({"erro": "letras_posicionadas, letras_extras, letras_exclusao, letras_encontradas e letras_incorretas devem ser listas."}), 400
     
     # Filtrar palavras
     candidatas = filtrar_palavras(
@@ -114,6 +130,7 @@ def filtrar():
         letras_extras=letras_extras,
         letras_exclusao=letras_exclusao,
         letras_encontradas=letras_encontradas,
+        letras_incorretas=letras_incorretas,
         tamanho_palavra=tamanho_palavra
     )
     
@@ -127,4 +144,4 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-   app.run(debug=True)
+    app.run(debug=True)
